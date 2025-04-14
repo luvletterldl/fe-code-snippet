@@ -13,6 +13,14 @@ function downloadCsv(title: string[], name: string) {
   link.remove()
 }
 
+function downloadTemplate(csvHeader: string[], name: string) {
+  const a = document.createElement('a')
+  const blob = new Blob([csvHeader.join(',')], { type: 'text/csv' })
+  a.href = URL.createObjectURL(blob)
+  a.download = name
+  a.click()
+}
+
 /**
  * 解析csv从文件
  * @param file 要解析的问题件
@@ -29,6 +37,37 @@ async function parseCsvFromFile(file: File) {
         const fmtContent = result.map((v) => v.split(','))
         resolve(fmtContent)
       }
+    }
+  })
+}
+
+function importCsv() {
+  window.showOpenFilePicker({
+    types: [
+      {
+        description: 'CSV',
+        accept: { 'text/csv': ['.csv'] },
+      },
+    ],
+  }).then(async (fileHandle) => {
+    if (fileHandle.length) {
+      const file = fileHandle[0]
+      const blob = new Blob([await file.getFile()], { type: 'text/csv' })
+      blob.text().then((text) => {
+        const list = parseCsv(text)
+        console.log('list', list)
+        // TODO
+      })
+    }
+  }).catch(e => console.warn(e))
+}
+
+function parseCsv(text: string) {
+  return text.split('\n').slice(1).filter(v => v.trim() !== '').map((v) => {
+    const cols = v.split(',')
+    return {
+      uname: cols[0],
+      date: cols[1]
     }
   })
 }
