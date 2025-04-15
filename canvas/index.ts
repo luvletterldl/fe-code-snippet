@@ -14,3 +14,22 @@ function getTextRenderWidthByCanvas(text: string, font: { size: number, family?:
   canvas.remove()
   return { actual, width: ctx!.measureText(text).width }
 }
+
+/** 是否开启了硬件加速 */
+export async function hardwareAccelerate() {
+  if (VideoDecoder) {
+    const { supported = true } = await VideoDecoder.isConfigSupported({ "codec": "avc1.42001E", "hardwareAcceleration": "prefer-hardware" })
+    return supported
+  } else {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl');
+    if (gl) {
+      const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+      if (debugInfo) {
+        const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+        return !/SwiftShader/gi.test(renderer);
+      }
+    }
+    return false;
+  }
+}
